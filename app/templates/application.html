@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Application Status</h2>
+<table class="tbl" style="max-width:640px">
+  <tr><th>Application No</th><td>{{ a[0] }}</td></tr>
+  <tr><th>Applicant Name</th><td>{{ a[1] }}</td></tr>
+  <tr><th>Mobile</th><td>{{ a[2] }}</td></tr>
+  <tr><th>Date of Birth</th><td>{{ a[3] }}</td></tr>
+  <tr><th>Village</th><td>{{ a[4] }}</td></tr>
+  <tr><th>Block</th><td>{{ a[5] }}</td></tr>
+  <tr><th>Bank Account</th><td>{{ a[6] }}</td></tr>
+  <tr><th>IFSC</th><td>{{ a[7] }}</td></tr>
+  <tr><th>Status</th><td><b>{{ a[8] }}</b></td></tr>
+  <tr><th>Submitted</th><td>{{ a[9] }}</td></tr>
+  <tr><th>Decided</th><td>{{ a[10] or '-' }}</td></tr>
+</table>
+<p><a href="/ack/{{ app_id }}.pdf">Download Acknowledgment (PDF)</a></p>
+{% if a[8] == 'PENDING' %}
+<hr>
+<h3>Request a correction or withdrawal</h3>
+<p class="note">Your application record will not change until staff review your request.</p>
+<form method="post" action="/application/{{ app_id }}/change-request">
+  <label>Request type</label>
+  <select name="request_type" id="change-request-type" required>
+    <option value="">--Select--</option>
+    <option value="CORRECTION">Correct application information</option>
+    <option value="WITHDRAWAL">Withdraw this application</option>
+  </select>
+  <div id="correction-fields">
+    <label>Which information needs correction?</label>
+    <select name="field_name">
+      <option value="">--Select--</option>
+      <option value="applicant_name">Applicant name</option>
+      <option value="dob">Date of birth</option>
+      <option value="village">Village / town</option>
+      <option value="block">Block</option>
+      <option value="bank_account">Bank account</option>
+      <option value="ifsc">IFSC code</option>
+    </select>
+    <label>Correct information</label>
+    <input type="text" name="proposed_value" maxlength="100">
+  </div>
+  <label>Explain your request</label>
+  <textarea name="details" required maxlength="2000"></textarea>
+  <p><button class="btn" type="submit">Send for Staff Review</button></p>
+</form>
+<script>
+const typeSelect = document.getElementById('change-request-type');
+const correctionFields = document.getElementById('correction-fields');
+function updateChangeFields() {
+  correctionFields.hidden = typeSelect.value !== 'CORRECTION';
+}
+typeSelect.addEventListener('change', updateChangeFields);
+updateChangeFields();
+</script>
+{% endif %}
+{% endblock %}

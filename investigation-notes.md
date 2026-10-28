@@ -1,0 +1,62 @@
+# Sewa Setu — Initial Investigation Notes
+
+## 1. Citizen complaints
+
+- Name fidelity: Assamese names appear as question marks on acknowledgment slips; other applicants report names cut short.
+- Post-submission correction: applicants who discover mistakes ask to cancel or correct, but staff have no supported correction flow and delete/re-enter requests.
+- Deemed approval: the DC says untouched files should be approved after the 15-day RTPS SLA; the overnight job stopped around Holi and overdue files now remain pending.
+- Peak-time slowdown: the site reportedly slows in the two or three days before each disbursement deadline.
+- Suspected privacy leak: the DC heard reports of sales calls after applying. This is unverified as an incident; investigate access paths and logs without assuming who leaked data.
+- Form usability: eligible applicants say they cannot complete the form without paid help. This is a reported usability problem, not yet reproduced.
+- Separate OTP report from this session: the local OTP appeared in the fake gateway and the user confirmed verification reached `/form/1`; no real handset delivery was tested.
+- Upload mismatch reported in this session: the page promised JPG/PDF up to 5 MB, while the backend rejected JPG and PDFs over 100 KB with `ERR_VAL_47`. The app now matches the stated formats and limit, validates file signatures, and provides clear messages; regression tests pass and the local app container has been restarted with the change.
+
+## 2. Expected behaviour
+
+- Names typed in Assamese should be stored and rendered faithfully, without byte truncation or replacement glyphs.
+- Applicants should have a safe way to correct or withdraw an application after submission; an operator should not need to delete a record and ask the citizen to submit again.
+- Untouched pending applications should transition to deemed-approved exactly after 15 days, with the decision visible to the citizen and an appropriate notification.
+- The application should remain usable during the reported pre-disbursement peak.
+- Applicant identity, bank details, and application documents must not be readable or alterable by another citizen or an unauthorised user.
+- Eligible residents aged 60+ should be able to complete the form without paid assistance.
+- OTP symptom: `/apply` queues an OTP after valid mobile/CAPTCHA; this local setup uses a simulated gateway, so delivery appears in its inbox rather than going to a handset.
+- Verification follow-up: user confirmed the OTP flow works through `/verify` and reaches the first application form (`/form/1`).
+- CAPTCHA regression: the original route did not compare the submitted answer with `session["captcha_answer"]`. A guard is now present before DB/SMS work; wrong-answer and correct-answer regression tests pass. The app container has been rebuilt and restarted with this change.
+- Scheduler config defect: the original `app/scripts/deemed_approval.py` opened missing `config/settings.ini`; the workspace and rebuilt image now point it to existing `config/app.ini` with `sla_days = 15`. Two mocked scheduler tests pass after the fix. The scheduler container has not been restarted, so this fix is not active in that service.
+- Cron evidence: the archived job has timestamped successes from 1 Jan through 14 Mar 2026 (73 runs), then 108 daily traceback blocks through 30 Jun. Each reports the missing `/app/config/settings.ini`. First failure on 15 Mar is inferred from the daily 02:00 schedule and ordered log output.
+- Confirmed security fixes: acknowledgment and application-status ownership checks, admin-only decision actions, and parameterized password reset lookups are now present locally. The reported sales-call incident remains unverified.
+- Acknowledgment access fix: added authorization for admin, logged-in owner, or the immediate post-submission session. The anonymous baseline returned HTTP 200 on a fictional record; after the fix, anonymous access is HTTP 403 while owner and post-submission tests pass. The app was rebuilt and restarted. The user-provided PDF was not opened; an anonymous request returned 403 before any database lookup.
+- Admin credential handling: removed the source-level admin username/password and any Compose defaults. `SEWASETU_ADMIN_USERNAME` and `SEWASETU_ADMIN_PASSWORD` are required; an unset configuration returns 503 from `/admin`. `.env` is ignored by Git and `.env.example` has blank values. Configure distinct secrets in the public platform and hand them to the assessor privately.
+- Assamese name correction: `sanitize()` previously cut names after 20 UTF-8 bytes, which could split Assamese names. It now keeps up to the schema's 100 characters and trims only outer whitespace. Acknowledgment generation embeds Noto Sans Bengali and HarfBuzz shaping; Latin text in the applicant-name value can fall back to Noto Sans. Baseline tests failed for `ৰূপা দাস` truncation and for missing Unicode font data; both tests pass after the change. The Docker image includes Debian `fonts-noto-core`; the local app was restarted. No seeded data was changed.
+- Password-reset injection correction: both mobile lookups in `/status/reset` previously interpolated user input into SQL. Regression coverage first failed on a fictional SQL-shaped mobile value appearing in the query. Both lookups now bind mobile as parameters; the SQL-shaped value remains data and does not trigger the mocked reset. The normal reset path also uses parameters, and the SMS sender was mocked in tests.
+- Upload evidence: original `/upload` accepted only `.pdf` and rejected files above 102400 bytes although the template promised JPG/PDF and 5 MB. The route now checks JPG/PDF signatures, accepts up to 5 MiB, and reports actionable errors. Five fictional-file tests pass in the rebuilt app image.
+- Performance evidence: Jan–Jun access logs contain 6,886 HTTP 500s and 6,873 HTTP 504s; application logs contain 13,759 “too many clients” database errors. Month-end correlation and causal route analysis are still pending.
+- Deadline and age boundaries fixed locally: the app now uses Asia/Kolkata time and the exclusive cutoff 2026-11-01 00:00 IST. Fixed-clock regressions verify age eligibility at the 60th birthday and rejection after midnight.
+
+## 3. Evidence to investigate
+
+- Relevant application pages: personal details, address, bank details, upload, declaration, confirmation, status, and acknowledgment templates under `app/templates/`.
+- Relevant backend routes: `/apply`, `/verify`, `/form/<step>`, `/upload`, `/declaration`, `/ack/<id>.pdf`, `/status`, `/application/<app_id>`, `/status/reset`, `/admin/approve/<id>`, and `/admin/reject/<id>`.
+- Relevant database tables: `otps` for OTP issuance/verification; `applications` and `portal_users` for completed submissions and status access (`app/schema.sql`).
+- Relevant log files: `logs/sewasetu-logs-jan-jun-2026.tar.gz` contains nginx access, application, and cron logs for 01 Jan–30 Jun 2026.
+- OTP test evidence: one local submission with the supplied test contact returned a redirect to `/verify`; after the gateway's 1–4 second delay, the app's `/__gateway/` proxy reported one newly delivered OTP message. The app config points to `http://smsgw:8025`, the local simulation. The contact and OTP are intentionally omitted from these notes.
+- Sanitized log summary: 1,515,987 access records include 6,886 HTTP 500s and 6,873 HTTP 504s. The application log has 13,759 entries reporting PostgreSQL “too many clients” and 62 SMS gateway timeout entries. These are confirmed reliability signals; their relationship to a specific complaint is not yet established.
+
+## 4. Questions to verify
+
+- [x] Obtain the DC briefing observations or transcript; record the complaints without guessing.
+- [ ] Reproduce each complaint once its expected and actual behaviour are clear.
+- [ ] Find supporting route, database, and log evidence for each complaint.
+- [ ] Write and run a failing regression test before fixing each confirmed defect.
+- [ ] Confirm existing citizen records remain intact. The local OTP check inserted one OTP row and one fake-gateway message; no application record was submitted or modified.
+- [x] CAPTCHA regression test added at `app/test/test_apply_captcha.py`. Baseline reached the route and failed as expected: wrong CAPTCHA returned HTTP 302 instead of re-rendering the form (HTTP 200). After the fix, both wrong-answer (reject before DB/SMS) and correct-answer (continue to OTP flow) tests pass. The app image was rebuilt with the `Werkzeug<3` compatibility pin, and the tests pass without a shim. Tests used mocked DB/SMS calls; no real services were contacted. The local app container now runs that image.
+- [x] Deemed-approval config regression: baseline import failed on missing `settings.ini`; after changing the path to `app.ini`, both tests pass with mocked PostgreSQL and SMS. Images were rebuilt; no scheduler DB update was executed. The scheduler container has not been restarted.
+- [x] Upload regression: against the original route, the five cases failed; after the fix, valid JPEG/PDF at the limit pass, oversized/unsupported/signature-mismatched files are rejected with clear messages. The rebuilt app image passes all five.
+- [x] Acknowledgment authorization regression: anonymous baseline returned HTTP 200 for a mocked record; after the guard, anonymous and non-owner sessions receive 403, while owner and just-submitted applicant sessions can fetch their own acknowledgment. Four tests pass. The local app is restarted with the fix; no citizen PDF was read or database row changed.
+- [x] Application ownership regression: baseline let a logged-in non-owner view a mocked application (HTTP 200); after the ownership check, the owner test remains HTTP 200 and the non-owner receives 403. Both tests pass; app image was rebuilt/restarted, and anonymous access redirects to login. No seeded records were read.
+- [x] Admin-action authorization regression: citizen-session baseline reached both approve/reject actions (302); after requiring the admin flag, citizens receive 403 and admin tests still pass. All 20 focused tests pass; app image was rebuilt/restarted. DB was mocked; no approval/rejection was applied to a real row.
+- Focused suite result after remaining fixes: 29 tests pass in the rebuilt Docker app image. Local app container was restarted with the image; database and scheduler were not restarted, and all behavioral tests used fictional data or mocks.
+- Performance finding and mitigation: daily aggregation of the archived logs shows all 13,759 `/declaration` HTTP 500/504 responses aligned by count with 13,759 PostgreSQL “too many clients” errors. Peaks cluster on days 28-30; the read-only query plan for mobile duplicate checks was a full table scan. Added idempotent schema indexes for applications.mobile and pending submitted_at, then applied them concurrently to the local database. Read-only plans now use an index-only scan and bitmap index scan. Indexes do not alter citizen rows; concurrent-load verification on a disposable database remains outstanding.
+- Runtime secret handling: the Flask session key and database password now come from `SEWASETU_FLASK_SECRET_KEY` and `SEWASETU_DB_PASSWORD`; the app config and Compose no longer contain secret defaults. The local database connection was verified with read-only `SELECT 1`; local admin login returns 302 to the dashboard and portal liveness is 200. `.env.example` was restored to blank placeholders after private values were found in it, and the local admin password was rotated. Public deployment secrets remain to be set separately.
+- Correction/withdrawal workflow: citizens can request correction of allowlisted fields or withdrawal for their own pending application; staff decide in an admin-only review queue. Review rechecks pending status and preserves the original row; approved withdrawal marks it withdrawn. Five tests cover ownership, denial for another applicant, correction, withdrawal, and admin-only queue access. Policy choice recorded: retain mobile-only duplicate detection; this does not guarantee one application per person.
+- Current focused suite: latest recorded Docker run passed 39 tests. The app container runs the tested image; the database was not restarted and the scheduler remains on its previous image to avoid triggering overdue decisions. Re-run the suite before release if code changes are made.

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Citizen correction and withdrawal requests</h2>
+<p><a href="/admin/dashboard">&laquo; Dashboard</a></p>
+{% if not rows %}<p>No open requests.</p>{% endif %}
+{% for r in rows %}
+<section style="border:1px solid #ccd;padding:16px;margin:16px 0">
+  <h3>Request #{{ r[0] }} — Application {{ r[1] }}</h3>
+  <p><b>Mobile:</b> {{ r[2] }} | <b>Type:</b> {{ r[3] }} | <b>Submitted:</b> {{ r[8] }}</p>
+  {% if r[3] == 'CORRECTION' %}
+  <p><b>Field:</b> {{ r[4] }} | <b>Proposed value:</b> {{ r[5] }}</p>
+  {% endif %}
+  <p><b>Reason:</b> {{ r[6] }}</p>
+  <form method="post" action="/admin/change-request/{{ r[0] }}/review">
+    <label>Review notes</label>
+    <textarea name="review_notes" maxlength="2000"></textarea>
+    <button class="btn" name="decision" value="APPROVE" type="submit">Approve</button>
+    <button class="btn" name="decision" value="DECLINE" type="submit" style="background:#a33">Decline</button>
+  </form>
+</section>
+{% endfor %}
+{% endblock %}
