@@ -1,13 +1,17 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<div class="steps"><b>Step 1 of 6:</b> Mobile Verification &rsaquo; Personal Details &rsaquo; Address &rsaquo; Bank Details &rsaquo; Document Upload &rsaquo; Declaration</div>
-<h2>Mobile Verification</h2>
+<div class="progress"><div class="progress-label"><strong>Step 1 of 6</strong><span>Verify your mobile</span></div><progress value="1" max="6" aria-label="Step 1 of 6"></progress></div>
+<h1>Verify your mobile number</h1>
+<p class="muted">We will send a one-time password (OTP) to this number. It is used to access your application.</p>
 <form method="post">
-  <label>Mobile Number</label>
-  <input type="text" name="mobile" maxlength="10" placeholder="10 digit mobile number">
-  <label>Security Check: What is {{ captcha_q }}?</label>
-  <input type="text" name="captcha" style="max-width:120px">
-  <p><button class="btn" type="submit">Send OTP</button></p>
+  <div class="field"><label for="mobile">Mobile number</label>
+    <input id="mobile" type="text" name="mobile" maxlength="10" inputmode="numeric" autocomplete="tel-national" placeholder="10-digit mobile number" aria-describedby="mobile-help" required>
+    <div class="help" id="mobile-help">Enter the 10-digit number you can receive SMS on.</div>
+  </div>
+  <div class="field"><label for="captcha">Security check: what is {{ captcha_q }}?</label>
+    <input id="captcha" type="text" name="captcha" inputmode="numeric" autocomplete="off" style="max-width:180px" required>
+  </div>
+  <p><button class="button" type="submit">Send OTP</button></p>
 </form>
-<p class="note">An OTP will be sent to your mobile number by SMS. OTP is valid for 5 minutes.</p>
+<p class="help">The OTP is valid for 5 minutes. If it expires, return and request another one.</p>
 {% endblock %}

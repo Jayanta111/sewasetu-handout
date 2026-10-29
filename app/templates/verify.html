@@ -1,11 +1,13 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<div class="steps"><b>Step 1 of 6:</b> Mobile Verification</div>
-<h2>Enter OTP</h2>
-<p class="note">An OTP has been sent to {{ mobile }}.</p>
+<div class="progress"><div class="progress-label"><strong>Step 1 of 6</strong><span>Verify your mobile</span></div><progress value="1" max="6" aria-label="Step 1 of 6"></progress></div>
+<h1>Enter your OTP</h1>
+<p class="muted">A one-time password was sent to {{ mobile }}. It is valid for 5 minutes.</p>
 <form method="post">
-  <label>OTP</label>
-  <input type="text" name="otp" maxlength="6" style="max-width:160px">
-  <p><button class="btn" type="submit">Verify</button></p>
+  <div class="field"><label for="otp">6-digit OTP</label>
+    <input id="otp" type="text" name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" style="max-width:240px" required>
+    <div class="help">If the code expires, request a new OTP from the previous page.</div>
+  </div>
+  <p><button class="button" type="submit">Verify and continue</button></p>
 </form>
 {% endblock %}

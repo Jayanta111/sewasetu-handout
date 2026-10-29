@@ -9,8 +9,8 @@ DEEMED_APPROVED and notifies the applicant by SMS.
 Scheduled via cron, 02:00 daily. See deploy/crontab.
 """
 
+import argparse
 import os
-import sys
 import configparser
 from datetime import datetime, timedelta
 
@@ -28,16 +28,39 @@ SLA_DAYS = config.getint("pension", "sla_days")
 SMS_GATEWAY_URL = config.get("app", "sms_gateway_url")
 
 
-def main():
+def main(dry_run=False):
     conn = psycopg2.connect(
         host=config.get("database", "host"),
         port=config.get("database", "port"),
-        dbname=config.get("database", "name"),
+        dbname=os.environ.get(
+            "SEWASETU_DB_NAME", config.get("database", "name")),
         user=config.get("database", "user"),
         password=os.environ["SEWASETU_DB_PASSWORD"],
     )
-    cur = conn.cursor()
     cutoff = datetime.now() - timedelta(days=SLA_DAYS)
+
+    if dry_run:
+        # Enforce read-only mode at the database transaction level as well as
+        # using a SELECT query. This path never sends applicant notifications.
+        conn.set_session(readonly=True)
+        cur = conn.cursor()
+        try:
+            cur.execute(
+                """SELECT COUNT(*)
+                   FROM applications
+                   WHERE status = 'PENDING' AND submitted_at < %s""",
+                (cutoff,))
+            candidate_count = cur.fetchone()[0]
+            print("%s DRY RUN: %d pending applications meet the %d-day SLA "
+              "cutoff; no records changed and no SMS sent"
+                  % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                     candidate_count, SLA_DAYS))
+            return candidate_count
+        finally:
+            cur.close()
+            conn.close()
+
+    cur = conn.cursor()
     cur.execute(
         """UPDATE applications
            SET status = 'DEEMED_APPROVED', decided_at = %s, decided_by = 'RTPS-AUTO'
@@ -58,7 +81,13 @@ def main():
           % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), len(rows)))
     cur.close()
     conn.close()
+    return len(rows)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    parser = argparse.ArgumentParser(description="Process RTPS deemed approvals")
+    parser.add_argument(
+        "--dry-run", action="store_true",
+        help="count eligible pending applications without changing rows or sending SMS")
+    args = parser.parse_args()
+    main(dry_run=args.dry_run)

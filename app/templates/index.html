@@ -1,25 +1,30 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<h2>Welcome</h2>
-<p>The Old Age Pension Scheme provides a monthly pension of Rs. 250 to eligible
-senior citizens above 60 years of age who are residents of Purvanchal.</p>
+<h1>Old Age Pension</h1>
+<p class="lead">Apply for pension support or check an application you have already submitted.</p>
+<div class="notice"><strong>Before you apply</strong>
+  <ul class="checklist">
+    <li>You must be a Purvanchal resident and at least 60 years old on the day you apply.</li>
+    <li>Apply once per person. If you have already applied, check your status first.</li>
+    <li>Keep your mobile phone, bank details, and an age proof document ready.</li>
+  </ul>
+</div>
 {% if hours_left is not none %}
-<p><b>Application window closes in approximately {{ hours_left }} hours</b>
-(midnight, 31 October).</p>
+<p><strong>Applications close at midnight India time on the closing date.</strong>
+{% if hours_left > 0 %}About {{ hours_left }} hours remain.{% endif %}</p>
 {% else %}
-<p><b>The application window for this scheme has closed.</b></p>
+<p class="notice"><strong>The application window is closed.</strong> New applications cannot be submitted right now.</p>
 {% endif %}
-<p>
-  <a href="/apply"><button class="btn">Apply for Pension</button></a>
-  &nbsp;
-  <a href="/status"><button class="btn" style="background:#555">Check Application Status</button></a>
-</p>
-<h3>How to apply</h3>
-<ol class="note">
-  <li>Verify your mobile number with OTP.</li>
-  <li>Fill the application form (personal details, address, bank details).</li>
-  <li>Upload your age proof document (JPG or PDF, maximum 5 MB).</li>
-  <li>Submit the declaration. Note down your Application Number.</li>
+<div class="actions">
+  {% if hours_left is not none %}<a class="button" href="/apply">Start an application</a>{% endif %}
+  <a class="button button-secondary" href="/status">Check application status</a>
+</div>
+<h2>What you will need</h2>
+<ol class="checklist">
+  <li>A mobile number to verify with a one-time password.</li>
+  <li>Your name and date of birth as shown on your age proof.</li>
+  <li>Your address and bank account details.</li>
+  <li>An age proof image or PDF, up to 5 MB.</li>
 </ol>
-<p class="note">For assistance visit your nearest Block Development Office.</p>
+<p class="muted">The form has six short steps. You can ask for help at your nearest Block Development Office.</p>
 {% endblock %}

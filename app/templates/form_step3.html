@@ -1,14 +1,17 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<div class="steps"><b>Step 4 of 6:</b> Bank Details</div>
-<h2>Bank Details for Pension Disbursement</h2>
+<div class="progress"><div class="progress-label"><strong>Step 4 of 6</strong><span>Bank details</span></div><progress value="4" max="6" aria-label="Step 4 of 6"></progress></div>
+<h1>Bank details for pension payments</h1>
+<p class="muted">Enter the account where you want your pension deposited.</p>
 <form method="post">
-  <label>Bank Account Number</label>
-  <input type="text" name="bank_account" value="{{ data.get('bank_account','') }}">
-  <label>IFSC Code</label>
-  <input type="text" name="ifsc" value="{{ data.get('ifsc','') }}">
-  <p class="note">Pension will be credited by DBT to this account. Ensure the account
-  is in the name of the applicant.</p>
-  <p><button class="btn" type="submit">Save &amp; Continue</button></p>
+  <div class="field"><label for="bank-account">Bank account number</label>
+    <input id="bank-account" type="text" name="bank_account" inputmode="numeric" autocomplete="off" value="{{ data.get('bank_account','') }}" required>
+    <div class="help">Check every digit before continuing.</div>
+  </div>
+  <div class="field"><label for="ifsc">IFSC code</label>
+    <input id="ifsc" type="text" name="ifsc" autocapitalize="characters" autocomplete="off" value="{{ data.get('ifsc','') }}" required>
+  </div>
+  <div class="notice">The pension is paid by direct bank transfer. Please use an account in the applicant's name.</div>
+  <p><button class="button" type="submit">Save and continue</button></p>
 </form>
 {% endblock %}

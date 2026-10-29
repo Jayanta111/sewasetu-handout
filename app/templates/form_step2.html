@@ -1,17 +1,19 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<div class="steps"><b>Step 3 of 6:</b> Address Details</div>
-<h2>Address Details</h2>
+<div class="progress"><div class="progress-label"><strong>Step 3 of 6</strong><span>Address</span></div><progress value="3" max="6" aria-label="Step 3 of 6"></progress></div>
+<h1>Your address</h1>
+<p class="muted">Enter the place where you currently live.</p>
 <form method="post">
-  <label>Village / Town</label>
-  <input type="text" name="village" value="{{ data.get('village','') }}">
-  <label>Block</label>
-  <select name="block">
-    <option value="">--Select--</option>
+  <div class="field"><label for="village">Village or town</label>
+    <input id="village" type="text" name="village" value="{{ data.get('village','') }}" autocomplete="address-level2" required>
+  </div>
+  <div class="field"><label for="block">Block</label>
+  <select id="block" name="block" required>
+    <option value="">Choose your block</option>
     {% for b in blocks %}
-    <option {% if data.get('block')==b %}selected{% endif %}>{{ b }}</option>
+    <option value="{{ b }}" {% if data.get('block')==b %}selected{% endif %}>{{ b }}</option>
     {% endfor %}
-  </select>
-  <p><button class="btn" type="submit">Save &amp; Continue</button></p>
+  </select></div>
+  <p><button class="button" type="submit">Save and continue</button></p>
 </form>
 {% endblock %}

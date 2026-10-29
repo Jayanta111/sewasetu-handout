@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123b5d">
+  <title>{% block title %}Old Age Pension{% endblock %} | Sewa Setu</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #192b3a;
+      --muted: #526575;
+      --navy: #123b5d;
+      --navy-dark: #0c2d48;
+      --accent: #e3a124;
+      --line: #d4dee6;
+      --paper: #fff;
+      --canvas: #f3f6f8;
+      --soft: #eef4f8;
+      --focus: #1d6fb8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    a { color: #124f7b; text-underline-offset: .16em; }
+    a:hover { color: var(--navy-dark); }
+    a:focus-visible, button:focus-visible, input:focus-visible,
+    select:focus-visible, textarea:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .site-header { background: var(--navy); color: #fff; border-bottom: 4px solid var(--accent); }
+    .header-inner, .nav-inner, .main-inner, .footer-inner {
+      width: min(100% - 32px, 920px);
+      margin: 0 auto;
+    }
+    .header-inner { padding: 18px 0 14px; }
+    .brand { margin: 0; font-size: 1.35rem; line-height: 1.25; font-weight: 700; }
+    .department { margin: 4px 0 0; color: #e1eaf0; font-size: .92rem; }
+    .site-nav { background: #fff; border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 10px 0; }
+    .site-nav a { color: var(--navy); font-weight: 700; text-decoration: none; padding: 4px 0; }
+    .site-nav a:hover { text-decoration: underline; }
+    .main-inner { padding: 28px 0 40px; }
+    .content { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 28px 32px; }
+    h1, h2, h3 { color: var(--navy-dark); line-height: 1.25; }
+    h1 { margin: 0 0 12px; font-size: clamp(1.55rem, 4vw, 2rem); }
+    h2 { margin: 0 0 14px; font-size: clamp(1.3rem, 3vw, 1.65rem); }
+    h3 { margin: 24px 0 8px; font-size: 1.15rem; }
+    p { margin: 0 0 16px; }
+    .lead { font-size: 1.08rem; color: #344c5e; }
+    .muted, .help, .note { color: var(--muted); font-size: .94rem; }
+    .notice { border-left: 4px solid var(--accent); background: #fff8e8; padding: 12px 16px; margin: 18px 0; }
+    .flash { border: 1px solid #d6a43d; border-left: 4px solid #b87800; background: #fff8e8; padding: 12px 14px; margin: 0 0 20px; border-radius: 4px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+    .button, button.button {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 46px; border: 2px solid var(--navy); border-radius: 5px;
+      padding: 9px 18px; background: var(--navy); color: #fff;
+      font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .button:hover, button.button:hover { background: var(--navy-dark); color: #fff; }
+    .button-secondary { background: #fff; color: var(--navy); }
+    .button-secondary:hover { background: var(--soft); color: var(--navy-dark); }
+    .checklist { padding-left: 22px; }
+    .checklist li { margin: 7px 0; }
+    .progress { margin: 0 0 24px; }
+    .progress-label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; color: var(--muted); font-size: .9rem; }
+    progress { display: block; width: 100%; height: 10px; accent-color: var(--navy); }
+    form { max-width: 640px; }
+    .field { margin: 18px 0; }
+    label { display: block; margin: 0 0 6px; font-weight: 700; }
+    input[type="text"], input[type="password"], input[type="file"], select, textarea {
+      display: block; width: 100%; min-height: 46px; border: 1px solid #8798a6;
+      border-radius: 5px; padding: 10px 12px; background: #fff; color: var(--ink);
+      font: inherit;
+    }
+    input[type="file"] { padding: 8px; }
+    textarea { min-height: 110px; resize: vertical; }
+    input::placeholder { color: #627383; opacity: 1; }
+    .checkbox-row { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0; }
+    .checkbox-row input { width: 20px; height: 20px; flex: 0 0 auto; margin-top: 2px; }
+    .table-wrap { overflow-x: auto; margin: 16px 0; }
+    table.tbl { width: 100%; border-collapse: collapse; }
+    table.tbl th, table.tbl td { padding: 11px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    table.tbl th { width: 38%; background: var(--soft); color: var(--navy-dark); }
+    .site-footer { border-top: 1px solid var(--line); background: #fff; color: var(--muted); }
+    .footer-inner { padding: 18px 0 24px; font-size: .9rem; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 8px; }
+    @media (max-width: 600px) {
+      .header-inner, .nav-inner, .main-inner, .footer-inner { width: min(100% - 24px, 920px); }
+      .main-inner { padding: 16px 0 24px; }
+      .content { padding: 20px 16px; border-radius: 6px; }
+      .actions { display: grid; }
+      .button, button.button { width: 100%; }
+      table.tbl th, table.tbl td { padding: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <p class="brand">Sewa Setu</p>
+      <p class="department">Old Age Pension · Department of Social Welfare · Government of Purvanchal</p>
+    </div>
+  </header>
+  <nav class="site-nav" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="/">Home</a>
+      <a href="/about">About the pension</a>
+      <a href="/status">Check application status</a>
+    </div>
+  </nav>
+  <main class="main-inner">
+    <div class="content">
+      {% with messages = get_flashed_messages() %}
+        {% for message in messages %}<div class="flash" role="alert">{{ message }}</div>{% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-links"><a href="/">Home</a><a href="/about">Scheme details</a><a href="/status">Application status</a></div>
+      <div>For help, visit your nearest Block Development Office.</div>
+    </div>
+  </footer>
+</body>
+</html>

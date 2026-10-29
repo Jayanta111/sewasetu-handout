@@ -1,4 +1,5 @@
 import importlib.util
+import os
 import pathlib
 import sys
 import types
@@ -59,6 +60,61 @@ class DeemedApprovalConfigTest(unittest.TestCase):
         connection.commit.assert_called_once()
         send_sms.assert_called_once()
         self.assertEqual(send_sms.call_args.kwargs["json"]["to"], "0000000000")
+
+    def test_dry_run_is_read_only_reports_count_and_sends_no_sms(self):
+        scheduler = self.load_scheduler()
+        fixed_now = datetime(2026, 10, 28, 12, 0, 0)
+
+        class FrozenDateTime(datetime):
+            @classmethod
+            def now(cls):
+                return fixed_now
+
+        scheduler.datetime = FrozenDateTime
+        cursor = Mock()
+        cursor.fetchone.return_value = (4874,)
+        connection = Mock()
+        connection.cursor.return_value = cursor
+        scheduler.psycopg2.connect.return_value = connection
+
+        with patch.object(scheduler.requests, "post") as send_sms:
+            with patch("builtins.print") as output:
+                count = scheduler.main(dry_run=True)
+
+        connection.set_session.assert_called_once_with(readonly=True)
+        sql, params = cursor.execute.call_args.args
+        self.assertIn("SELECT COUNT(*)", sql.upper())
+        self.assertIn("WHERE status = 'PENDING' AND submitted_at < %s", sql)
+        self.assertEqual(params, (fixed_now - timedelta(days=15),))
+        self.assertEqual(count, 4874)
+        output.assert_called_once()
+        self.assertIn("4874", output.call_args.args[0])
+        cursor.fetchall.assert_not_called()
+        connection.commit.assert_not_called()
+        send_sms.assert_not_called()
+
+    def test_dry_run_connection_is_closed_after_reporting(self):
+        scheduler = self.load_scheduler()
+        scheduler.psycopg2.connect.return_value.cursor.return_value.fetchone.return_value = (0,)
+
+        scheduler.main(dry_run=True)
+
+        connection = scheduler.psycopg2.connect.return_value
+        connection.cursor.return_value.close.assert_called_once()
+        connection.close.assert_called_once()
+
+    def test_database_name_override_targets_isolated_rehearsal_database(self):
+        scheduler = self.load_scheduler()
+        scheduler.psycopg2.connect.return_value.cursor.return_value.fetchone.return_value = (0,)
+
+        with patch.dict(os.environ, {"SEWASETU_DB_NAME": "sewasetu_rehearsal"}):
+            with patch("builtins.print"):
+                scheduler.main(dry_run=True)
+
+        self.assertEqual(
+            scheduler.psycopg2.connect.call_args.kwargs["dbname"],
+            "sewasetu_rehearsal",
+        )
 
 
 if __name__ == "__main__":

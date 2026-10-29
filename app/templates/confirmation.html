@@ -1,12 +1,11 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<h2>Application Submitted</h2>
-<p>Your application has been received.</p>
-<table class="tbl" style="max-width:480px">
-  <tr><th>Application Number</th><td><b>{{ app_no }}</b></td></tr>
-</table>
-<p class="note">Please note down your Application Number. You can check your
-application status on the <a href="/status">status portal</a> using your mobile
-number and password (your date of birth in DDMMYYYY format).</p>
-<p><a href="/ack/{{ app_id }}.pdf"><button class="btn">Download Acknowledgment (PDF)</button></a></p>
+<h1>Application received</h1>
+<p class="lead">Keep this application number. You will need it when contacting the department.</p>
+<div class="notice"><strong>Application number: {{ app_no }}</strong></div>
+<p>To check your status, sign in with the mobile number you used to apply. Your initial password is your date of birth in DDMMYYYY format.</p>
+<div class="actions">
+  <a class="button" href="/ack/{{ app_id }}.pdf">Download acknowledgment (PDF)</a>
+  <a class="button button-secondary" href="/status">Check application status</a>
+</div>
 {% endblock %}

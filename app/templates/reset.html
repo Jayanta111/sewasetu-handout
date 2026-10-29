@@ -1,9 +1,12 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<h2>Reset Password</h2>
+<h1>Reset your password</h1>
+<p class="muted">Enter the mobile number linked to your application. If a matching account is found, a reset message will be sent.</p>
 <form method="post">
-  <label>Registered Mobile Number</label>
-  <input type="text" name="mobile">
-  <p><button class="btn" type="submit">Reset Password</button></p>
+  <div class="field"><label for="reset-mobile">Registered mobile number</label>
+    <input id="reset-mobile" type="text" name="mobile" inputmode="numeric" autocomplete="tel-national" maxlength="10" required>
+  </div>
+  <p><button class="button" type="submit">Send password reset</button></p>
 </form>
+<p><a href="/status">Back to sign in</a></p>
 {% endblock %}

@@ -1,31 +1,54 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<div class="steps"><b>Step 2 of 6:</b> Personal Details</div>
-<h2>Personal Details</h2>
+<div class="progress"><div class="progress-label"><strong>Step 2 of 6</strong><span>Personal details</span></div><progress value="2" max="6" aria-label="Step 2 of 6"></progress></div>
+<h1>Your personal details</h1>
+<p class="muted">Enter the details as they appear on your age proof document.</p>
 <form method="post">
-  <label>Full Name of Applicant (as per age proof document)</label>
-  <input type="text" name="applicant_name" value="{{ data.get('applicant_name','') }}">
-  <label>Date of Birth (DD/MM/YYYY)</label>
-  <input type="text" name="dob" placeholder="DD/MM/YYYY" value="{{ data.get('dob','') }}">
-  <label>Gender</label>
-  <select name="gender">
-    <option value="">--Select--</option>
+  <div class="field"><label for="applicant-name">Full name</label>
+    <input id="applicant-name" type="text" name="applicant_name" value="{{ data.get('applicant_name','') }}" autocomplete="name" required>
+    <div class="help">You may enter your name in Assamese or another language.</div>
+  </div>
+  <div class="field"><label for="dob">Date of birth</label>
+    <input id="dob" type="text" name="dob" inputmode="numeric" autocomplete="bday" placeholder="DD/MM/YYYY" value="{{ data.get('dob','') }}" aria-describedby="dob-help" required>
+    <div class="help" id="dob-help">Use day/month/year. Example: 20/05/1961. You must be at least 60 on the day you apply.</div>
+  </div>
+  <div class="field"><label for="gender">Gender <span class="muted">(optional)</span></label>
+  <select id="gender" name="gender">
+    <option value="">Select if you wish</option>
     <option {% if data.get('gender')=='Male' %}selected{% endif %}>Male</option>
     <option {% if data.get('gender')=='Female' %}selected{% endif %}>Female</option>
     <option {% if data.get('gender')=='Other' %}selected{% endif %}>Other</option>
-  </select>
-  <label>Marital Status</label>
-  <select name="marital_status">
-    <option value="">--Select--</option>
+  </select></div>
+  <div class="field"><label for="marital-status">Marital status <span class="muted">(optional)</span></label>
+  <select id="marital-status" name="marital_status">
+    <option value="">Select if you wish</option>
     <option {% if data.get('marital_status')=='Married' %}selected{% endif %}>Married</option>
     <option {% if data.get('marital_status')=='Unmarried' %}selected{% endif %}>Unmarried</option>
     <option {% if data.get('marital_status')=='Widowed' %}selected{% endif %}>Widowed</option>
-  </select>
-  <label>Husband's Name</label>
-  <input type="text" name="husband_name" value="{{ data.get('husband_name','') }}">
-  <label>Husband's Current Employer</label>
-  <input type="text" name="husband_employer" value="{{ data.get('husband_employer','') }}">
-  <p class="note">Fields marked above are mandatory as applicable.</p>
-  <p><button class="btn" type="submit">Save &amp; Continue</button></p>
+  </select></div>
+  <div id="widowed-fields" hidden>
+    <div class="field"><label for="husband-name">Husband's name</label>
+      <input id="husband-name" type="text" name="husband_name" value="{{ data.get('husband_name','') }}" autocomplete="off">
+    </div>
+    <div class="field"><label for="husband-employer">Husband's current employer</label>
+      <input id="husband-employer" type="text" name="husband_employer" value="{{ data.get('husband_employer','') }}" autocomplete="organization">
+      <div class="help">These details are required if you select Widowed.</div>
+    </div>
+  </div>
+  <p><button class="button" type="submit">Save and continue</button></p>
 </form>
+<script>
+const maritalStatus = document.getElementById('marital-status');
+const widowedFields = document.getElementById('widowed-fields');
+const husbandName = document.getElementById('husband-name');
+const husbandEmployer = document.getElementById('husband-employer');
+function updateWidowedFields() {
+  const isWidowed = maritalStatus.value === 'Widowed';
+  widowedFields.hidden = !isWidowed;
+  husbandName.required = isWidowed;
+  husbandEmployer.required = isWidowed;
+}
+maritalStatus.addEventListener('change', updateWidowedFields);
+updateWidowedFields();
+</script>
 {% endblock %}

@@ -1,12 +1,14 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<div class="steps"><b>Step 5 of 6:</b> Document Upload</div>
-<h2>Upload Age Proof Document</h2>
-<p class="note">Accepted documents: Birth certificate, School leaving certificate,
-Voter ID. Accepted formats: <b>JPG or PDF, maximum size 5 MB</b>.</p>
+<div class="progress"><div class="progress-label"><strong>Step 5 of 6</strong><span>Age proof document</span></div><progress value="5" max="6" aria-label="Step 5 of 6"></progress></div>
+<h1>Upload your age proof</h1>
+<p>Accepted documents: birth certificate, school leaving certificate, or Voter ID.</p>
+<div class="notice">Choose a clear JPG or PDF file. The maximum file size is 5 MB.</div>
 <form method="post" enctype="multipart/form-data">
-  <label>Select Document</label>
-  <input type="file" name="document" accept=".jpg,.jpeg,.pdf">
-  <p><button class="btn" type="submit">Upload &amp; Continue</button></p>
+  <div class="field"><label for="document">Choose a document</label>
+    <input id="document" type="file" name="document" accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf" aria-describedby="file-help" required>
+    <div class="help" id="file-help">Accepted file types: JPG and PDF. Maximum size: 5 MB.</div>
+  </div>
+  <p><button class="button" type="submit">Upload and continue</button></p>
 </form>
 {% endblock %}

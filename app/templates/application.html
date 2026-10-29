@@ -1,7 +1,8 @@
-{% extends "base.html" %}
+{% extends "citizen_base.html" %}
 {% block content %}
-<h2>Application Status</h2>
-<table class="tbl" style="max-width:640px">
+<h1>Your application</h1>
+<p class="muted">Review the details submitted with your application.</p>
+<div class="table-wrap"><table class="tbl">
   <tr><th>Application No</th><td>{{ a[0] }}</td></tr>
   <tr><th>Applicant Name</th><td>{{ a[1] }}</td></tr>
   <tr><th>Mobile</th><td>{{ a[2] }}</td></tr>
@@ -13,42 +14,47 @@
   <tr><th>Status</th><td><b>{{ a[8] }}</b></td></tr>
   <tr><th>Submitted</th><td>{{ a[9] }}</td></tr>
   <tr><th>Decided</th><td>{{ a[10] or '-' }}</td></tr>
-</table>
-<p><a href="/ack/{{ app_id }}.pdf">Download Acknowledgment (PDF)</a></p>
+</table></div>
+<p><a class="button button-secondary" href="/ack/{{ app_id }}.pdf">Download acknowledgment (PDF)</a></p>
 {% if a[8] == 'PENDING' %}
 <hr>
-<h3>Request a correction or withdrawal</h3>
-<p class="note">Your application record will not change until staff review your request.</p>
+<h2>Need to correct or withdraw?</h2>
+<p class="muted">Send a request for staff review. Your application details will remain unchanged until staff decide.</p>
 <form method="post" action="/application/{{ app_id }}/change-request">
-  <label>Request type</label>
+  <div class="field"><label for="change-request-type">What do you need?</label>
   <select name="request_type" id="change-request-type" required>
-    <option value="">--Select--</option>
+    <option value="">Choose one</option>
     <option value="CORRECTION">Correct application information</option>
     <option value="WITHDRAWAL">Withdraw this application</option>
-  </select>
+  </select></div>
   <div id="correction-fields">
-    <label>Which information needs correction?</label>
-    <select name="field_name">
-      <option value="">--Select--</option>
+    <div class="field"><label for="field-name">Which detail needs correction?</label>
+    <select name="field_name" id="field-name">
+      <option value="">Choose a detail</option>
       <option value="applicant_name">Applicant name</option>
       <option value="dob">Date of birth</option>
       <option value="village">Village / town</option>
       <option value="block">Block</option>
       <option value="bank_account">Bank account</option>
       <option value="ifsc">IFSC code</option>
-    </select>
-    <label>Correct information</label>
-    <input type="text" name="proposed_value" maxlength="100">
+    </select></div>
+    <div class="field"><label for="proposed-value">Correct information</label>
+    <input id="proposed-value" type="text" name="proposed_value" maxlength="100"></div>
   </div>
-  <label>Explain your request</label>
-  <textarea name="details" required maxlength="2000"></textarea>
-  <p><button class="btn" type="submit">Send for Staff Review</button></p>
+  <div class="field"><label for="request-details">Tell us what happened</label>
+    <textarea id="request-details" name="details" required maxlength="2000" aria-describedby="details-help"></textarea>
+    <div class="help" id="details-help">Please do not include passwords or OTPs.</div>
+  </div>
+  <p><button class="button" type="submit">Send request for review</button></p>
 </form>
 <script>
 const typeSelect = document.getElementById('change-request-type');
 const correctionFields = document.getElementById('correction-fields');
 function updateChangeFields() {
-  correctionFields.hidden = typeSelect.value !== 'CORRECTION';
+  const isCorrection = typeSelect.value === 'CORRECTION';
+  correctionFields.hidden = !isCorrection;
+  document.getElementById('field-name').required = isCorrection;
+  document.getElementById('proposed-value').required = isCorrection;
 }
 typeSelect.addEventListener('change', updateChangeFields);
 updateChangeFields();
