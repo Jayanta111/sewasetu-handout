@@ -68,9 +68,18 @@ except Exception:
 
 
 def get_db():
-    database_url = os.environ.get("DATABASE_URL")
+    database_url = next((os.environ.get(key, "").strip() for key in (
+        "DATABASE_URL", "NEON_DATABASE_URL", "NEON_URL", "POSTGRES_URL"
+    ) if os.environ.get(key, "").strip()), "")
     if database_url:
         return psycopg2.connect(database_url)
+    is_render = os.environ.get("RENDER", "").lower() == "true"
+    configured_db_host = os.environ.get("SEWASETU_DB_HOST", "").strip()
+    if is_render and configured_db_host.lower() in ("", "db"):
+        raise RuntimeError(
+            "Database URL is missing. Set DATABASE_URL (or NEON_DATABASE_URL) "
+            "in this Render web service's Environment settings."
+        )
     return psycopg2.connect(
         host=os.environ.get("SEWASETU_DB_HOST", config.get("database", "host")),
         port=os.environ.get("SEWASETU_DB_PORT", config.get("database", "port")),
