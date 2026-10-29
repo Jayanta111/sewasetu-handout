@@ -17,4 +17,4 @@ COPY app/ ./
 RUN mkdir -p /var/sewasetu/uploads /var/log/sewasetu
 
 EXPOSE 10000
-CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:${PORT:-10000} --workers 4 --timeout 30 app:app"]
+CMD ["sh", "-c", "python /app/scripts/init_schema.py && exec gunicorn --bind 0.0.0.0:${PORT:-10000} --workers 4 --timeout 30 app:app"]
