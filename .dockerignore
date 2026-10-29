@@ -1,0 +1,9 @@
+.git
+.env
+.env.*
+!.env.example
+logs/
+seed/
+*.mp3
+__pycache__/
+*.py[cod]

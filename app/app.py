@@ -39,7 +39,9 @@ ADMIN_USERNAME = os.environ.get("SEWASETU_ADMIN_USERNAME")
 ADMIN_PASSWORD = os.environ.get("SEWASETU_ADMIN_PASSWORD")
 IST = ZoneInfo("Asia/Kolkata")
 
-SMS_GATEWAY_URL = config.get("app", "sms_gateway_url")
+SMS_GATEWAY_URL = os.environ.get(
+    "SEWASETU_SMS_GATEWAY_URL", config.get("app", "sms_gateway_url")
+)
 OTP_VALIDITY_SECONDS = config.getint("app", "otp_validity_seconds")
 UPLOAD_DIR = config.get("app", "upload_dir")
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
@@ -66,11 +68,14 @@ except Exception:
 
 
 def get_db():
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        return psycopg2.connect(database_url)
     return psycopg2.connect(
-        host=config.get("database", "host"),
-        port=config.get("database", "port"),
-        dbname=config.get("database", "name"),
-        user=config.get("database", "user"),
+        host=os.environ.get("SEWASETU_DB_HOST", config.get("database", "host")),
+        port=os.environ.get("SEWASETU_DB_PORT", config.get("database", "port")),
+        dbname=os.environ.get("SEWASETU_DB_NAME", config.get("database", "name")),
+        user=os.environ.get("SEWASETU_DB_USER", config.get("database", "user")),
         password=os.environ["SEWASETU_DB_PASSWORD"],
     )
 
